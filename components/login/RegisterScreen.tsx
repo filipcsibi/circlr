@@ -15,28 +15,22 @@ import {
   ActivityIndicator,
   Image,
   Dimensions,
-  KeyboardAvoidingView,
 } from "react-native";
 const { width, height } = Dimensions.get("window");
-import { NavigationProp, useNavigation } from "@react-navigation/native";
-import { RootStackParamList } from "../navigation/types";
 
-const LoginScreen: React.FC = () => {
+const RegisterScreen: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const auth = Authentication;
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const SingIn = async () => {
     setLoading(true);
     try {
       const response = await signInWithEmailAndPassword(auth, email, password);
       console.log(response);
-      navigation.navigate("feedscreen");
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
-      alert("Sign in failed" + error.message);
     } finally {
       setLoading(false);
     }
@@ -51,7 +45,6 @@ const LoginScreen: React.FC = () => {
       );
       console.log(response);
       alert("Sign in success");
-      navigation.navigate("feedscreen");
     } catch (error: any) {
       console.log(error);
       alert("Sign in failed" + error.message);
@@ -62,11 +55,20 @@ const LoginScreen: React.FC = () => {
   const Logo = require("../../assets/images/logo.png");
   return (
     <View style={styles.container}>
+      {/* <View style={styles.topflex}>
+        <Image source={Logo} style={styles.logo} />
+        <Text style={styles.irclr}>irclr</Text>
+      </View> */}
       <View style={styles.topflex}>
-        <Text style={styles.welcome}>Welcome,</Text>
-        <Text style={styles.glad}>Glad to see you!</Text>
+        <Text style={styles.welcome}>Create Account</Text>
+        <Text style={styles.glad}>to get started now!</Text>
       </View>
-      <KeyboardAvoidingView behavior="padding">
+      <View>
+        <TextInput
+          style={styles.placeholder}
+          placeholder="Username"
+          autoCapitalize="none"
+        />
         <TextInput
           style={styles.placeholder}
           placeholder="Email Address"
@@ -82,8 +84,8 @@ const LoginScreen: React.FC = () => {
           onChangeText={(password) => setPassword(password)}
           autoCapitalize="none"
         />
-        <Text style={styles.forgot}>Forgot password?</Text>
-      </KeyboardAvoidingView>
+      </View>
+
       {loading ? (
         <View style={styles.activity}>
           <ActivityIndicator size="small" color="gray" />
@@ -92,14 +94,14 @@ const LoginScreen: React.FC = () => {
         <View>
           <TouchableOpacity
             style={styles.button}
-            onPress={SingIn}
+            onPress={SignUp}
             activeOpacity={0}
           >
-            <Text style={styles.buttonText}>Login</Text>
+            <Text style={styles.buttonText}>Register</Text>
           </TouchableOpacity>
         </View>
       )}
-      <Text style={styles.using}>Sign in using</Text>
+      <Text style={styles.using}>Sign up using</Text>
       <View style={styles.socials}>
         <Facebook width={width * 0.22} height={height * 0.1} />
         <Google width={width * 0.22} height={height * 0.1} />
@@ -115,6 +117,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginVertical: 20,
     gap: 16,
+  },
+  activity: {
+    height: height * 0.07,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 48,
+    justifyContent: "center",
   },
   forgot: {
     alignSelf: "flex-end",
@@ -135,20 +144,11 @@ const styles = StyleSheet.create({
     borderColor: "#A61515",
     padding: 8,
   },
-  activity: {
-    height: height * 0.07,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 24,
-    marginBottom: 48,
-    justifyContent: "center",
-  },
   button: {
     backgroundColor: "#A61515",
     height: height * 0.07,
     borderRadius: 8,
     alignItems: "center",
-    marginTop: 24,
     marginBottom: 48,
     justifyContent: "center",
   },
@@ -206,4 +206,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default RegisterScreen;
