@@ -16,10 +16,12 @@ import {
   Image,
   Dimensions,
   KeyboardAvoidingView,
+  SafeAreaView,
 } from "react-native";
 const { width, height } = Dimensions.get("window");
 import { NavigationProp, useNavigation } from "@react-navigation/native";
-import { RootStackParamList } from "../navigation/types";
+import { RootStackParamList } from "../navigation/routes/types";
+import GoBackButton from "../navigation/GoBack";
 
 const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -33,7 +35,7 @@ const LoginScreen: React.FC = () => {
     try {
       const response = await signInWithEmailAndPassword(auth, email, password);
       console.log(response);
-      navigation.navigate("feedscreen");
+      navigation.navigate("tabnavigator");
     } catch (error: any) {
       console.log(error);
       alert("Sign in failed" + error.message);
@@ -51,7 +53,7 @@ const LoginScreen: React.FC = () => {
       );
       console.log(response);
       alert("Sign in success");
-      navigation.navigate("feedscreen");
+      navigation.navigate("tabnavigator");
     } catch (error: any) {
       console.log(error);
       alert("Sign in failed" + error.message);
@@ -59,53 +61,57 @@ const LoginScreen: React.FC = () => {
       setLoading(false);
     }
   };
-  const Logo = require("../../assets/images/logo.png");
   return (
-    <View style={styles.container}>
-      <View style={styles.topflex}>
-        <Text style={styles.welcome}>Welcome,</Text>
-        <Text style={styles.glad}>Glad to see you!</Text>
-      </View>
-      <KeyboardAvoidingView behavior="padding">
-        <TextInput
-          style={styles.placeholder}
-          placeholder="Email Address"
-          value={email}
-          onChangeText={(email) => setEmail(email)}
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.placeholder}
-          placeholder="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={(password) => setPassword(password)}
-          autoCapitalize="none"
-        />
-        <Text style={styles.forgot}>Forgot password?</Text>
-      </KeyboardAvoidingView>
-      {loading ? (
-        <View style={styles.activity}>
-          <ActivityIndicator size="small" color="gray" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+      <View style={styles.container}>
+        <GoBackButton />
+        <View style={{ justifyContent: "center", flex: 1 }}>
+          <View style={styles.topflex}>
+            <Text style={styles.welcome}>Welcome,</Text>
+            <Text style={styles.glad}>Glad to see you!</Text>
+          </View>
+          <KeyboardAvoidingView behavior="padding">
+            <TextInput
+              style={styles.placeholder}
+              placeholder="Email Address"
+              value={email}
+              onChangeText={(email) => setEmail(email)}
+              autoCapitalize="none"
+            />
+            <TextInput
+              style={styles.placeholder}
+              placeholder="Password"
+              secureTextEntry
+              value={password}
+              onChangeText={(password) => setPassword(password)}
+              autoCapitalize="none"
+            />
+            <Text style={styles.forgot}>Forgot password?</Text>
+          </KeyboardAvoidingView>
+          {loading ? (
+            <View style={styles.activity}>
+              <ActivityIndicator size="small" color="gray" />
+            </View>
+          ) : (
+            <View>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={SingIn}
+                activeOpacity={0}
+              >
+                <Text style={styles.buttonText}>Login</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          <Text style={styles.using}>Sign in using</Text>
+          <View style={styles.socials}>
+            <Facebook width={width * 0.22} height={height * 0.1} />
+            <Google width={width * 0.22} height={height * 0.1} />
+            <Apple width={width * 0.22} height={height * 0.1} />
+          </View>
         </View>
-      ) : (
-        <View>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={SingIn}
-            activeOpacity={0}
-          >
-            <Text style={styles.buttonText}>Login</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      <Text style={styles.using}>Sign in using</Text>
-      <View style={styles.socials}>
-        <Facebook width={width * 0.22} height={height * 0.1} />
-        <Google width={width * 0.22} height={height * 0.1} />
-        <Apple width={width * 0.22} height={height * 0.1} />
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -176,7 +182,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     backgroundColor: "white",
-    justifyContent: "center",
   },
   buttontext: {
     color: "#A61515",

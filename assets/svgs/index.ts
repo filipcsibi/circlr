@@ -1,8 +1,36 @@
 import HomeFill from "./HomeFill.svg";
-import HomeOutline from "./HomeOutline.svg";
-import Search400 from "./Search400.svg";
-import Search700 from "./Search700.svg";
+import Home from "./Home.svg";
 import Apple from "./Apple.svg";
 import Facebook from "./Facebook.svg";
 import Google from "./Google.svg";
-export { HomeFill, HomeOutline, Search400, Search700, Apple, Facebook, Google };
+import Share from "./Share.svg";
+import Comment from "./Comment.svg";
+import Heart from "./Heart.svg";
+import HeartFill from "./HeartFill.svg";
+import ArrowBack from "./ArrowBack.svg";
+import Account from "./Account.svg";
+import Dot from "./Dot.svg";
+import Fav from "./Fav.svg";
+import Post from "./Post.svg";
+import PostFill from "./PostFill.svg";
+import Search from "./Search.svg";
+import SearchFill from "./SearchFill.svg";
+export {
+  SearchFill,
+  Search,
+  PostFill,
+  Post,
+  Fav,
+  Dot,
+  HomeFill,
+  Home,
+  Apple,
+  Facebook,
+  Google,
+  Share,
+  Comment,
+  Heart,
+  HeartFill,
+  ArrowBack,
+  Account,
+};

@@ -10,7 +10,7 @@ import {
   Image,
   Dimensions,
 } from "react-native";
-import { RootStackParamList } from "../navigation/types";
+import { RootStackParamList } from "../navigation/routes/types";
 const { width, height } = Dimensions.get("window");
 
 const LandingScreen: React.FC = () => {
@@ -35,7 +35,7 @@ const LandingScreen: React.FC = () => {
           </Text>
           <TouchableOpacity
             style={styles.touchable}
-            onPress={() => navigation.navigate("registerscreen")}
+            onPress={() => navigation.navigate("tabnavigator")}
           >
             <Text style={styles.buttontext}>Are you in?</Text>
           </TouchableOpacity>
