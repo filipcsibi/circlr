@@ -15,7 +15,11 @@ import Post from "./Post.svg";
 import PostFill from "./PostFill.svg";
 import Search from "./Search.svg";
 import SearchFill from "./SearchFill.svg";
+import Camera from "./Camera.svg";
+import Gallery from "./Gallery.svg";
 export {
+  Gallery,
+  Camera,
   SearchFill,
   Search,
   PostFill,

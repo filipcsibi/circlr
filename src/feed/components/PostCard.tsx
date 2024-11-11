@@ -25,9 +25,6 @@ export interface PostCardProps {
 }
 
 const PostCard: React.FC<PostCardProps> = (props) => {
-  const postImage = "https://picsum.photos/200/300"; // Example post image (replace with real image URLs)
-  const profileImage = "https://picsum.photos/200/300"; // Example profile image (replace with real image URLs)
-
   return (
     <View style={styles.card}>
       <View
