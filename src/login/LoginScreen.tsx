@@ -1,11 +1,11 @@
 // LoginScreen.tsx
-import { Apple, Facebook, Google, Search400 } from "@/assets/svgs";
+import { Apple, Facebook, Google } from "@/assets/svgs";
 import { Authentication } from "../../FirebaseConfig";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   View,
   Text,
@@ -19,48 +19,19 @@ import {
   SafeAreaView,
 } from "react-native";
 const { width, height } = Dimensions.get("window");
-import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../navigation/routes/types";
 import GoBackButton from "../navigation/GoBack";
-
-const LoginScreen: React.FC = () => {
+import { UserContext, UserContextType } from "./UserContext";
+const LoginScreen = ({
+  navigation,
+}: {
+  navigation: NavigationProp<RootStackParamList>;
+}) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const auth = Authentication;
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-
-  const SingIn = async () => {
-    setLoading(true);
-    try {
-      const response = await signInWithEmailAndPassword(auth, email, password);
-      console.log(response);
-      navigation.navigate("tabnavigator");
-    } catch (error: any) {
-      console.log(error);
-      alert("Sign in failed" + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const SignUp = async () => {
-    setLoading(true);
-    try {
-      const response = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      console.log(response);
-      alert("Sign in success");
-      navigation.navigate("tabnavigator");
-    } catch (error: any) {
-      console.log(error);
-      alert("Sign in failed" + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { login, loading } = useContext(UserContext) as UserContextType;
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
       <View style={styles.container}>
@@ -96,7 +67,7 @@ const LoginScreen: React.FC = () => {
             <View>
               <TouchableOpacity
                 style={styles.button}
-                onPress={SingIn}
+                onPress={() => login(email, password)}
                 activeOpacity={0}
               >
                 <Text style={styles.buttonText}>Login</Text>

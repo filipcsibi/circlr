@@ -3,14 +3,14 @@ import React, {
   useRef,
   forwardRef,
   useImperativeHandle,
+  useContext,
+  useEffect,
 } from "react";
 import {
   View,
-  Button,
   Modal,
   Text,
   TextInput,
-  StyleSheet,
   TouchableOpacity,
   Image,
   SafeAreaView,
@@ -20,8 +20,18 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Camera, Gallery } from "@/assets/svgs";
-const { width } = Dimensions.get("window");
-import { Storage } from "@/FirebaseConfig";
+import {
+  ref as storageRef,
+  getDownloadURL,
+  uploadBytesResumable,
+} from "firebase/storage";
+import { Authentication, Storage } from "@/FirebaseConfig";
+import * as Progress from "react-native-progress";
+import { styles } from "../styles/stylesPost";
+import { DataBase } from "@/FirebaseConfig";
+import { collection, addDoc, doc, getDoc } from "firebase/firestore";
+import { PostCardProps } from "@/src/feed/components/PostCard";
+import { UserContext, UserContextType } from "@/src/login/UserContext";
 
 export interface PostScreenRef {
   openPostModal: () => void;
@@ -30,10 +40,38 @@ export interface PostScreenRef {
 const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [postContent, setPostContent] = useState("");
-  const inputRef = useRef<TextInput | null>(null); // pt a refui textinput
+  const inputRef = useRef<TextInput | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploading, setUploading] = useState(false);
+  const { user } = useContext(UserContext) as UserContextType;
 
+  const [userTag, setUserTag] = useState<string | null>(null);
+
+  useEffect(() => {
+    console.log("a");
+    const fetchUserPhoto = async () => {
+      if (user?.uid)
+        try {
+          // Assuming you're using Firebase Authentication to get user details
+
+          const userRef = doc(DataBase, "users", user?.uid); // Fetch user by UID (userTag)
+
+          const docSnap = await getDoc(userRef); // Get the user document
+
+          if (docSnap.exists()) {
+            const userData = docSnap.data();
+            setUserTag(userData?.username); // Set the photoURL from Firestore
+            console.log(userTag);
+          } else {
+            console.error("No such document!");
+          }
+        } catch (error) {
+          console.error("Error fetching user photo URL: ", error);
+        }
+    };
+    fetchUserPhoto();
+  }, []);
   useImperativeHandle(ref, () => ({
     openPostModal: () => {
       setModalVisible(true);
@@ -83,24 +121,68 @@ const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
       setSelectedImage(result.assets[0].uri);
     }
   };
+  async function addPost(post: PostCardProps) {
+    try {
+      const docRef = await addDoc(collection(DataBase, "posts"), post);
+      console.log("Document written with ID: ", docRef.id);
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
+  }
   const handlePost = async () => {
     if (!selectedImage) {
       console.error("No image selected");
       return;
     }
-
-    let filename = selectedImage.substring(selectedImage.lastIndexOf("/") + 1);
-    setUploading(true);
     try {
-      await Storage.ref(filename).putFile(selectedImage);
-      console.log("Upload successful!");
-      // Reset modal and post content
-      setModalVisible(false);
-      setPostContent("");
+      setUploading(true);
+      setUploadProgress(0);
+
+      const fileRef = storageRef(Storage, "posts/" + new Date().getTime());
+
+      const response = await fetch(selectedImage);
+      const blob = await response.blob();
+
+      const uploadTask = uploadBytesResumable(fileRef, blob);
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log("Upload is " + progress + "% done");
+          setUploadProgress(Math.round(progress));
+        },
+        (error) => {
+          setUploading(false);
+          console.error("Error uploading image:", error);
+        },
+        async () => {
+          console.log("Upload complete");
+          const downloadURL = await getDownloadURL(fileRef);
+          console.log("File available at:", downloadURL);
+
+          addPost({
+            userName: user?.displayName || "",
+            userDescription: postContent,
+            postImage: downloadURL,
+            postTime: Date.now().toString(),
+            userTag: userTag || "",
+            likes: "0",
+            liked: false,
+            comments: "0",
+            favorite: false,
+          });
+
+          setModalVisible(false);
+          setPostContent("");
+          setSelectedImage(null);
+          setUploading(false);
+          setUploadProgress(0);
+        }
+      );
     } catch (error) {
       console.log("Error uploading image:", error);
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -125,7 +207,14 @@ const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
                 <Text style={styles.postButton}>Post</Text>
               </TouchableOpacity>
             </View>
-
+            <View style={styles.photoBar}>
+              <TouchableOpacity onPress={takePhoto}>
+                <Camera width={40} height={40} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={pickImage}>
+                <Gallery width={40} height={40} />
+              </TouchableOpacity>
+            </View>
             <TextInput
               ref={inputRef}
               multiline
@@ -137,67 +226,17 @@ const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
             {selectedImage && (
               <Image source={{ uri: selectedImage }} style={styles.postImage} />
             )}
-
-            <View style={styles.photoBar}>
-              <TouchableOpacity onPress={takePhoto}>
-                <Camera width={40} height={40} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={pickImage}>
-                <Gallery width={40} height={40} />
-              </TouchableOpacity>
-            </View>
+            {uploading && (
+              <View style={styles.uploadingContainer}>
+                <Text>Uploading: {uploadProgress}%</Text>
+                <Progress.Bar progress={uploadProgress / 100} color="#A61515" />
+              </View>
+            )}
           </View>
         </TouchableWithoutFeedback>
       </SafeAreaView>
     </Modal>
   );
-});
-
-const styles = StyleSheet.create({
-  postButtonTouchable: {
-    backgroundColor: "#A61515",
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 50,
-  },
-  photoBar: {
-    flexDirection: "row",
-    margin: 8,
-    gap: 8,
-    alignItems: "center",
-  },
-  postImage: {
-    width: width * 0.9,
-    height: width * 0.9,
-    alignSelf: "center",
-    borderRadius: 10,
-    resizeMode: "contain",
-    margin: 6,
-  },
-  modalContainer: {
-    flex: 1,
-    paddingHorizontal: 15,
-    backgroundColor: "#fff",
-  },
-  topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  cancelButton: {
-    color: "black",
-    fontSize: 16,
-  },
-  postButton: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  input: {
-    fontSize: 18,
-    padding: 10,
-    textAlignVertical: "top",
-  },
 });
 
 export default PostScreen;

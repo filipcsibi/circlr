@@ -1,11 +1,12 @@
 // LoginScreen.tsx
-import { Apple, Facebook, Google, Search400 } from "@/assets/svgs";
-import { Authentication } from "../../FirebaseConfig";
+import { Apple, Facebook, Google } from "@/assets/svgs";
+import { Authentication, DataBase } from "../../FirebaseConfig";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   View,
   Text,
@@ -16,49 +17,24 @@ import {
   Image,
   Dimensions,
 } from "react-native";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { RootStackParamList } from "../navigation/routes/types";
+import GoBackButton from "../navigation/GoBack";
+import { UserContext, UserContextType } from "./UserContext";
 const { width, height } = Dimensions.get("window");
 
 const RegisterScreen: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const auth = Authentication;
+  const [username, setUsername] = useState("");
+  const [fullname, setFullName] = useState("");
+  const { register } = useContext(UserContext) as UserContextType;
 
-  const SingIn = async () => {
-    setLoading(true);
-    try {
-      const response = await signInWithEmailAndPassword(auth, email, password);
-      console.log(response);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const SignUp = async () => {
-    setLoading(true);
-    try {
-      const response = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      console.log(response);
-      alert("Sign in success");
-    } catch (error: any) {
-      console.log(error);
-      alert("Sign in failed" + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const Logo = require("../../assets/images/logo.png");
   return (
     <View style={styles.container}>
-      {/* <View style={styles.topflex}>
-        <Image source={Logo} style={styles.logo} />
-        <Text style={styles.irclr}>irclr</Text>
-      </View> */}
+      <GoBackButton />
       <View style={styles.topflex}>
         <Text style={styles.welcome}>Create Account</Text>
         <Text style={styles.glad}>to get started now!</Text>
@@ -66,7 +42,15 @@ const RegisterScreen: React.FC = () => {
       <View>
         <TextInput
           style={styles.placeholder}
+          placeholder="Full name"
+          value={fullname}
+          onChangeText={(fullname) => setFullName(fullname)}
+        />
+        <TextInput
+          style={styles.placeholder}
           placeholder="Username"
+          value={username}
+          onChangeText={(username) => setUsername(username)}
           autoCapitalize="none"
         />
         <TextInput
@@ -94,7 +78,7 @@ const RegisterScreen: React.FC = () => {
         <View>
           <TouchableOpacity
             style={styles.button}
-            onPress={SignUp}
+            onPress={() => register(fullname, username, email, password)}
             activeOpacity={0}
           >
             <Text style={styles.buttonText}>Register</Text>

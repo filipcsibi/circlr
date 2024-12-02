@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,11 +9,22 @@ import {
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons"; // or use another icon library
 import { Comment, Dot, Fav, Heart, Share } from "@/assets/svgs";
+import { UserContext, UserContextType } from "@/src/login/UserContext";
+import { Authentication, DataBase } from "@/FirebaseConfig";
+import { getAdditionalUserInfo, getAuth } from "firebase/auth";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 const { width, height } = Dimensions.get("window");
 
 export interface PostCardProps {
-  id: string;
-  userImage: string;
   userName: string;
   userTag: string;
   postImage: string;
@@ -22,9 +33,47 @@ export interface PostCardProps {
   likes: string;
   liked: boolean;
   comments: string;
+  favorite: boolean;
 }
 
 const PostCard: React.FC<PostCardProps> = (props) => {
+  const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null);
+
+  const updateProfilePicture = async () => {
+    try {
+      const userDocRef = doc(DataBase, "users", props.userTag);
+      await updateDoc(userDocRef, {
+        profilePicture: userPhotoURL,
+      });
+      console.log("Profile picture updated successfully!");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    const fetchUserPhoto = async () => {
+      try {
+        // Assuming you're using Firebase Authentication to get user details
+
+        const userRef = collection(DataBase, "users");
+
+        const q = query(userRef, where("username", "==", props.userTag)); // Fetch user by UID (userTag)
+        console.log(props.userTag);
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          const userDoc = querySnapshot.docs[0].data();
+          setUserPhotoURL(userDoc?.profilePicture);
+        } else {
+          console.error("No such document!");
+        }
+      } catch (error) {
+        console.error("Error fetching user photo URL: ", error);
+      }
+    };
+
+    fetchUserPhoto();
+  }, [props.userTag]);
   return (
     <View style={styles.card}>
       <View
@@ -35,11 +84,16 @@ const PostCard: React.FC<PostCardProps> = (props) => {
           marginBottom: 6,
         }}
       >
-        <Image source={{ uri: props.userImage }} style={styles.profileImage} />
+        <Image
+          source={{
+            uri: userPhotoURL || "http://www.example.com/12345678/photo.png",
+          }}
+          style={styles.profileImage}
+        />
         <View>
           <Text style={styles.username}>{props.userName}</Text>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={styles.usertag}>{props.userTag} </Text>
+            <Text style={styles.usertag}>@{props.userTag} </Text>
             <Dot width={4} height={4} />
             <Text style={styles.postTime}> {props.postTime}</Text>
           </View>

@@ -12,13 +12,16 @@ import PostScreen, { PostScreenRef } from "@/src/post/screens/PostScreen";
 import ProfileScreen from "@/src/profile/screens/ProfileScreen";
 import SearchScreen from "@/src/search/screens/SearchScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { TouchableOpacity } from "react-native";
 
 const Tab = createBottomTabNavigator();
 
-const TabNavigator: React.FC = () => {
+const TabNavigator = () => {
   const postScreenRef = useRef<PostScreenRef>(null);
+  useEffect(() => {
+    console.log("TabNavigator mounted");
+  }, []);
   return (
     <>
       <Tab.Navigator
@@ -83,6 +86,7 @@ const TabNavigator: React.FC = () => {
           component={ProfileScreen}
           options={{
             tabBarIcon: () => <Account width={32} height={32} />,
+            headerShown: false,
           }}
         />
       </Tab.Navigator>

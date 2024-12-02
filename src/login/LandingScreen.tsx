@@ -35,7 +35,7 @@ const LandingScreen: React.FC = () => {
           </Text>
           <TouchableOpacity
             style={styles.touchable}
-            onPress={() => navigation.navigate("tabnavigator")}
+            onPress={() => navigation.navigate("registerscreen")}
           >
             <Text style={styles.buttontext}>Are you in?</Text>
           </TouchableOpacity>

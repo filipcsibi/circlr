@@ -1,24 +1,36 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import LoginScreen from "@/src/login/LoginScreen";
-import RegisterScreen from "@/src/login/RegisterScreen";
-import { RootStackParamList } from "@/src/navigation/routes/types";
 import TabNavigator from "./TabNavigator";
-import LandingScreen from "@/src/login/LandingScreen";
+import { Authentication } from "@/FirebaseConfig";
+import { ActivityIndicator, View } from "react-native";
+import { UserContext, UserContextType } from "@/src/login/UserContext";
+import AuthNavigator from "./AuthNavigator";
+import { User } from "firebase/auth";
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
 const AppNavigator: React.FC = () => {
+  const { user, setUser } = useContext(UserContext) as UserContextType;
+  const [initializing, setInitializing] = useState(true);
+
+  const onAuthStateChanged1 = (user: User | null) => {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  };
+
+  useEffect(() => {
+    const subscriber = Authentication.onAuthStateChanged(onAuthStateChanged1);
+    return subscriber;
+  }, []);
+
+  if (initializing) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#A61515" />
+      </View>
+    );
+  }
   return (
-    <NavigationContainer independent={true}>
-      <Stack.Navigator
-        screenOptions={{ headerShown: false, gestureEnabled: false }}
-      >
-        <Stack.Screen name="landingscreen" component={LandingScreen} />
-        <Stack.Screen name="loginscreen" component={LoginScreen} />
-        <Stack.Screen name="registerscreen" component={RegisterScreen} />
-        <Stack.Screen name="tabnavigator" component={TabNavigator} />
-      </Stack.Navigator>
+    <NavigationContainer>
+      {user ? <TabNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
 };
