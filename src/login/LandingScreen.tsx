@@ -1,5 +1,5 @@
 import { NavigationProp, useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,9 @@ const { width, height } = Dimensions.get("window");
 const LandingScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const Logo = require("../../assets/images/logo.png");
+  useEffect(() => {
+    console.log("authmounted");
+  }, []);
   return (
     <View style={styles.container}>
       <View style={styles.topflex}>
@@ -99,7 +102,8 @@ const styles = StyleSheet.create({
   bottomflex: {
     backgroundColor: "#A61515",
     flex: 0.6,
-    borderRadius: 50,
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
     padding: 24,
     paddingBottom: 0,
     justifyContent: "space-between",

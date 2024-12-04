@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword,
   User as FirebaseUser,
   updateProfile,
+  sendEmailVerification,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
@@ -31,13 +32,15 @@ export const UserProvider: React.FC<React.PropsWithChildren<{}>> = ({
   children,
 }) => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     const loadUser = async () => {
       try {
         const storedUser = await AsyncStorage.getItem("user");
         if (storedUser) setUser(JSON.parse(storedUser));
+        setLoading(false);
       } catch (e) {
         console.log("Failed to load user:", e);
       }
@@ -65,6 +68,11 @@ export const UserProvider: React.FC<React.PropsWithChildren<{}>> = ({
         email,
         password
       );
+      if (!response.user.emailVerified) {
+        alert("Please verify your email before logging in.");
+        await Authentication.signOut();
+        return;
+      }
       setUser(response.user);
       saveUserToStorage(response.user);
     } catch (e) {
@@ -98,16 +106,18 @@ export const UserProvider: React.FC<React.PropsWithChildren<{}>> = ({
         username,
         email,
         createdAt: new Date(),
-        profilePicture: "",
       });
 
       await updateProfile(response.user, {
         displayName: fullname,
       });
 
-      setUser(response.user);
-      saveUserToStorage(response.user);
-      alert("Sign up successful");
+      await sendEmailVerification(response.user);
+
+      alert(
+        "Sign up successful. Please check your email for verification. Then log in!"
+      );
+      await Authentication.signOut();
     } catch (e) {
       console.log(e);
       alert("Sign up failed");

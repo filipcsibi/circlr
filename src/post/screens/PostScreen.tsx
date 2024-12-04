@@ -14,7 +14,6 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
-  Dimensions,
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
@@ -25,7 +24,7 @@ import {
   getDownloadURL,
   uploadBytesResumable,
 } from "firebase/storage";
-import { Authentication, Storage } from "@/FirebaseConfig";
+import { Storage } from "@/FirebaseConfig";
 import * as Progress from "react-native-progress";
 import { styles } from "../styles/stylesPost";
 import { DataBase } from "@/FirebaseConfig";
@@ -49,20 +48,16 @@ const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
   const [userTag, setUserTag] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("a");
     const fetchUserPhoto = async () => {
       if (user?.uid)
         try {
-          // Assuming you're using Firebase Authentication to get user details
+          const userRef = doc(DataBase, "users", user?.uid);
 
-          const userRef = doc(DataBase, "users", user?.uid); // Fetch user by UID (userTag)
-
-          const docSnap = await getDoc(userRef); // Get the user document
+          const docSnap = await getDoc(userRef);
 
           if (docSnap.exists()) {
             const userData = docSnap.data();
-            setUserTag(userData?.username); // Set the photoURL from Firestore
-            console.log(userTag);
+            setUserTag(userData?.username);
           } else {
             console.error("No such document!");
           }
@@ -72,6 +67,7 @@ const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
     };
     fetchUserPhoto();
   }, []);
+
   useImperativeHandle(ref, () => ({
     openPostModal: () => {
       setModalVisible(true);
@@ -86,6 +82,7 @@ const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
       setPostContent("");
     },
   }));
+
   const pickImage = async () => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -121,7 +118,7 @@ const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
       setSelectedImage(result.assets[0].uri);
     }
   };
-  async function addPost(post: PostCardProps) {
+  async function addPost(post: Omit<PostCardProps, "id">) {
     try {
       const docRef = await addDoc(collection(DataBase, "posts"), post);
       console.log("Document written with ID: ", docRef.id);
@@ -130,6 +127,7 @@ const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
     }
   }
   const handlePost = async () => {
+    Keyboard.dismiss();
     if (!selectedImage) {
       console.error("No image selected");
       return;
@@ -168,10 +166,13 @@ const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
             postImage: downloadURL,
             postTime: Date.now().toString(),
             userTag: userTag || "",
-            likes: "0",
-            liked: false,
-            comments: "0",
-            favorite: false,
+            likes: 0,
+            likedBy: [],
+            comments: 0,
+            commented: [],
+            favorite: [],
+            shares: 0,
+            shared: [],
           });
 
           setModalVisible(false);

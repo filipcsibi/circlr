@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import AppNavigator from "@/src/navigation/navigators/AppNavigator";
 import { UserProvider } from "@/src/login/UserContext";
 

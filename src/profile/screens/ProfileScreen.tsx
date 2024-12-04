@@ -17,7 +17,6 @@ import {
   deleteObject,
 } from "firebase/storage";
 import { DataBase, Storage } from "@/FirebaseConfig";
-import { updateProfile } from "firebase/auth";
 const { width, height } = Dimensions.get("window");
 import * as Progress from "react-native-progress";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
@@ -35,16 +34,18 @@ const ProfileScreen = () => {
       return;
     }
     const getProfilePic = async () => {
-      if (!user) {
-        return;
+      try {
+        const userDocRef = doc(DataBase, "users", user.uid);
+        const userSnapshot = await getDoc(userDocRef);
+        if (userSnapshot.exists())
+          setProfilePicture(userSnapshot.data().profilePicture);
+      } catch (error) {
+        console.log(error);
       }
-      const userDocRef = doc(DataBase, "users", user.uid);
-      const userSnapshot = await getDoc(userDocRef);
-      if (userSnapshot.exists())
-        setProfilePicture(userSnapshot.data().profilePicture);
     };
     getProfilePic();
   }, []);
+
   const pickImage = async () => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -94,13 +95,6 @@ const ProfileScreen = () => {
       } else {
         console.log("error");
       }
-
-      if (user?.photoURL) {
-        const previousImageRef = storageRef(Storage, user.photoURL);
-        await deleteObject(previousImageRef);
-        console.log("Previous profile picture deleted");
-      }
-
       const fileRef = storageRef(
         Storage,
         "profilePictures/" + new Date().getTime()
@@ -164,7 +158,6 @@ const ProfileScreen = () => {
             <Progress.Bar progress={uploadProgress / 100} color="#A61515" />
           </View>
         )}
-
         <Text style={styles.userName}>{user?.displayName}</Text>
         <Text style={styles.userDescription}>
           Developer | Tech Enthusiast | Coffee Lover
@@ -179,9 +172,9 @@ const ProfileScreen = () => {
 
 const styles = StyleSheet.create({
   uploadingContainer: {
+    height: width * 0.3,
+    marginBottom: 10,
     width: "100%",
-    height: width * 0.1,
-    marginVertical: 100,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -202,7 +195,7 @@ const styles = StyleSheet.create({
     height: width * 0.3,
     borderRadius: 100,
     borderWidth: 2,
-    borderColor: "#A61515", // You can change this color
+    borderColor: "#A61515",
     marginBottom: 10,
   },
   userName: {

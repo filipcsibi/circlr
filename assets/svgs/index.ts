@@ -17,7 +17,9 @@ import Search from "./Search.svg";
 import SearchFill from "./SearchFill.svg";
 import Camera from "./Camera.svg";
 import Gallery from "./Gallery.svg";
+import FavFill from "./FavFill.svg";
 export {
+  FavFill,
   Gallery,
   Camera,
   SearchFill,

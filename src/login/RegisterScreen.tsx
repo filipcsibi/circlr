@@ -27,10 +27,9 @@ const { width, height } = Dimensions.get("window");
 const RegisterScreen: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState("");
   const [fullname, setFullName] = useState("");
-  const { register } = useContext(UserContext) as UserContextType;
+  const { register, loading } = useContext(UserContext) as UserContextType;
 
   return (
     <View style={styles.container}>
