@@ -7,29 +7,9 @@ import { ActivityIndicator, View } from "react-native";
 
 const AppNavigator: React.FC = () => {
   const { user } = useContext(UserContext) as UserContextType;
-  const [init, setInit] = useState(true);
-  useEffect(() => {
-    if (user) setInit(false);
-  }, [user]);
-
   return (
     <NavigationContainer>
-      {init ? (
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "transparent",
-          }}
-        >
-          <ActivityIndicator size="large" color="#A61515" />
-        </View>
-      ) : user ? (
-        <TabNavigator />
-      ) : (
-        <AuthNavigator />
-      )}
+      {user ? <TabNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
 };

@@ -7,15 +7,7 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
-import {
-  Comment,
-  Dot,
-  Fav,
-  FavFill,
-  Heart,
-  HeartFill,
-  Share,
-} from "@/assets/svgs";
+import { Comment, Dot, Fav, FavFill, Heart, HeartFill } from "@/assets/svgs";
 import { DataBase } from "@/FirebaseConfig";
 import {
   collection,
@@ -42,6 +34,7 @@ export interface PostCardProps {
   favorite: string[];
   shares: number;
   shared: string[];
+  imageHeight: number;
 }
 
 const PostCard: React.FC<PostCardProps> = (props) => {
@@ -49,6 +42,8 @@ const PostCard: React.FC<PostCardProps> = (props) => {
   const [isLikedState, setIsLikedState] = useState(false);
   const [isFav, setFavState] = useState(false);
   const [likeCountState, setLikeCountState] = useState(props.likes);
+  const [comCountState, setComCountState] = useState(props.comments);
+
   const { user } = useContext(UserContext) as UserContextType;
   const blankProfilePicture = require("../../../assets/images/ProfileBlank.png");
   useEffect(() => {
@@ -182,7 +177,16 @@ const PostCard: React.FC<PostCardProps> = (props) => {
           }}
         >
           <Text style={styles.caption}>{props.userDescription}</Text>
-          <Image source={{ uri: props.postImage }} style={styles.postImage} />
+
+          <Image
+            source={{ uri: props.postImage }}
+            style={{
+              width: width * 0.76,
+              height: props.imageHeight,
+              borderRadius: 12,
+            }}
+            resizeMode="cover"
+          />
           <View style={styles.iconRow}>
             <TouchableOpacity style={styles.likeCommShare} onPress={handleLike}>
               {isLikedState ? (
@@ -196,11 +200,9 @@ const PostCard: React.FC<PostCardProps> = (props) => {
             </TouchableOpacity>
             <TouchableOpacity style={styles.likeCommShare}>
               <Comment width={22} height={22} />
-              <Text style={styles.numbLikes}>{props.comments}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.likeCommShare}>
-              <Share width={22} height={22} />
-              <Text style={styles.numbLikes}>{props.shares}</Text>
+              {comCountState !== 0 && (
+                <Text style={styles.numbLikes}>{props.comments}</Text>
+              )}
             </TouchableOpacity>
             <TouchableOpacity onPress={handleFavorite}>
               {isFav ? (
@@ -235,6 +237,8 @@ const styles = StyleSheet.create({
   },
   numbLikes: {
     fontSize: 16,
+    color: "#666666",
+    fontWeight: "500",
   },
   usertag: {
     fontSize: 12,
@@ -265,12 +269,6 @@ const styles = StyleSheet.create({
   username: {
     fontWeight: "bold",
     fontSize: 16,
-  },
-  postImage: {
-    width: width * 0.76,
-    height: width * 0.76, // Square image
-    borderRadius: 12,
-    resizeMode: "cover",
   },
   footer: {
     padding: 8,

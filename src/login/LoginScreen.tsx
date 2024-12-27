@@ -44,6 +44,7 @@ const LoginScreen = ({
           <KeyboardAvoidingView behavior="padding">
             <TextInput
               style={styles.placeholder}
+              placeholderTextColor={"grey"}
               placeholder="Email Address"
               value={email}
               onChangeText={(email) => setEmail(email)}
@@ -51,6 +52,7 @@ const LoginScreen = ({
             />
             <TextInput
               style={styles.placeholder}
+              placeholderTextColor={"grey"}
               placeholder="Password"
               secureTextEntry
               value={password}

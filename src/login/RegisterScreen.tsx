@@ -41,12 +41,14 @@ const RegisterScreen: React.FC = () => {
       <View>
         <TextInput
           style={styles.placeholder}
+          placeholderTextColor={"grey"}
           placeholder="Full name"
           value={fullname}
           onChangeText={(fullname) => setFullName(fullname)}
         />
         <TextInput
           style={styles.placeholder}
+          placeholderTextColor={"grey"}
           placeholder="Username"
           value={username}
           onChangeText={(username) => setUsername(username)}
@@ -54,6 +56,7 @@ const RegisterScreen: React.FC = () => {
         />
         <TextInput
           style={styles.placeholder}
+          placeholderTextColor={"grey"}
           placeholder="Email Address"
           value={email}
           onChangeText={(email) => setEmail(email)}
@@ -61,6 +64,7 @@ const RegisterScreen: React.FC = () => {
         />
         <TextInput
           style={styles.placeholder}
+          placeholderTextColor={"grey"}
           placeholder="Password"
           secureTextEntry
           value={password}
@@ -180,6 +184,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 48,
+    marginTop: 24,
   },
   irclr: {
     fontSize: 32,

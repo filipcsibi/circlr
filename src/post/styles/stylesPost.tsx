@@ -23,7 +23,7 @@ export const styles = StyleSheet.create({
   },
   postImage: {
     width: width * 0.9,
-    height: width * 0.9,
+    height: width,
     alignSelf: "center",
     borderRadius: 10,
     resizeMode: "contain",

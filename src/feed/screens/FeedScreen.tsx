@@ -10,10 +10,6 @@ import {
   startAfter,
   QueryDocumentSnapshot,
   DocumentData,
-  doc,
-  updateDoc,
-  arrayRemove,
-  arrayUnion,
 } from "firebase/firestore";
 import { DataBase } from "@/FirebaseConfig";
 

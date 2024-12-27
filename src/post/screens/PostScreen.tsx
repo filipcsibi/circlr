@@ -16,6 +16,7 @@ import {
   SafeAreaView,
   TouchableWithoutFeedback,
   Keyboard,
+  Dimensions,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Camera, Gallery } from "@/assets/svgs";
@@ -31,6 +32,7 @@ import { DataBase } from "@/FirebaseConfig";
 import { collection, addDoc, doc, getDoc } from "firebase/firestore";
 import { PostCardProps } from "@/src/feed/components/PostCard";
 import { UserContext, UserContextType } from "@/src/login/UserContext";
+const screenWidth = Dimensions.get("window").width;
 
 export interface PostScreenRef {
   openPostModal: () => void;
@@ -44,6 +46,7 @@ const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploading, setUploading] = useState(false);
   const { user } = useContext(UserContext) as UserContextType;
+  const [imageHeight, setImageHeight] = useState<number>(0);
 
   const [userTag, setUserTag] = useState<string | null>(null);
 
@@ -93,12 +96,22 @@ const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
+      quality: 0.7,
     });
 
     if (!result.canceled) {
       setSelectedImage(result.assets[0].uri);
+      Image.getSize(
+        result.assets[0].uri,
+        (width, height) => {
+          const aspectRatio = height / width;
+          const calculatedHeight = screenWidth * 0.76 * aspectRatio;
+          setImageHeight(Math.min(calculatedHeight, screenWidth));
+        },
+        (error) => {
+          console.error("Error fetching image dimensions:", error);
+        }
+      );
     }
   };
 
@@ -110,12 +123,23 @@ const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      quality: 1,
+      quality: 0.7,
     });
 
     if (!result.canceled) {
       setSelectedImage(result.assets[0].uri);
+
+      Image.getSize(
+        result.assets[0].uri,
+        (width, height) => {
+          const aspectRatio = height / width;
+          const calculatedHeight = screenWidth * 0.76 * aspectRatio;
+          setImageHeight(Math.min(calculatedHeight, screenWidth));
+        },
+        (error) => {
+          console.error("Error fetching image dimensions:", error);
+        }
+      );
     }
   };
   async function addPost(post: Omit<PostCardProps, "id">) {
@@ -173,6 +197,7 @@ const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
             favorite: [],
             shares: 0,
             shared: [],
+            imageHeight: imageHeight,
           });
 
           setModalVisible(false);
@@ -225,7 +250,17 @@ const PostScreen = forwardRef<PostScreenRef>((props, ref) => {
               onChangeText={setPostContent}
             />
             {selectedImage && (
-              <Image source={{ uri: selectedImage }} style={styles.postImage} />
+              <Image
+                source={{ uri: selectedImage }}
+                style={{
+                  width: screenWidth * 0.76,
+                  height: imageHeight,
+                  alignSelf: "center",
+                  borderRadius: 10,
+                  margin: 6,
+                }}
+                resizeMode="cover"
+              />
             )}
             {uploading && (
               <View style={styles.uploadingContainer}>
