@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  Modal,
 } from "react-native";
 import { Comment, Dot, Fav, FavFill, Heart, HeartFill } from "@/assets/svgs";
 import { DataBase } from "@/FirebaseConfig";
@@ -18,7 +19,13 @@ import {
   where,
 } from "firebase/firestore";
 import { UserContext, UserContextType } from "@/src/login/UserContext";
+import PostDetails from "./PostDetails";
 const { width } = Dimensions.get("window");
+export interface CommentProps {
+  text: string;
+  displayName: string;
+  profilePicture: string | null;
+}
 
 export interface PostCardProps {
   id: string;
@@ -30,7 +37,7 @@ export interface PostCardProps {
   likes: number;
   likedBy: string[];
   comments: number;
-  commented: string[];
+  commented: CommentProps[];
   favorite: string[];
   shares: number;
   shared: string[];
@@ -43,6 +50,7 @@ const PostCard: React.FC<PostCardProps> = (props) => {
   const [isFav, setFavState] = useState(false);
   const [likeCountState, setLikeCountState] = useState(props.likes);
   const [comCountState, setComCountState] = useState(props.comments);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const { user } = useContext(UserContext) as UserContextType;
   const blankProfilePicture = require("../../../assets/images/ProfileBlank.png");
@@ -147,74 +155,89 @@ const PostCard: React.FC<PostCardProps> = (props) => {
     const yearsAgo = Math.floor(daysAgo / 365);
     return `${yearsAgo} years ago`;
   }
+  const openDetails = () => setModalVisible(true);
+  const closeDetails = () => setModalVisible(false);
 
   return (
-    <View style={styles.card}>
-      <View style={styles.topPart}>
-        <Image
-          source={
-            userPhotoURL
-              ? {
-                  uri: userPhotoURL,
-                }
-              : blankProfilePicture
-          }
-          style={styles.profileImage}
-        />
-        <View>
-          <Text style={styles.username}>{props.userName}</Text>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={styles.usertag}>@{props.userTag} </Text>
-            <Dot width={4} height={4} />
-            <Text style={styles.postTime}> {timeAgo(props.postTime)}</Text>
+    <>
+      <TouchableOpacity onPress={openDetails}>
+        <View style={styles.card}>
+          <View style={styles.topPart}>
+            <Image
+              source={
+                userPhotoURL
+                  ? {
+                      uri: userPhotoURL,
+                    }
+                  : blankProfilePicture
+              }
+              style={styles.profileImage}
+            />
+            <View>
+              <Text style={styles.username}>{props.userName}</Text>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text style={styles.usertag}>@{props.userTag} </Text>
+                <Dot width={4} height={4} />
+                <Text style={styles.postTime}> {timeAgo(props.postTime)}</Text>
+              </View>
+            </View>
           </View>
-        </View>
-      </View>
-      <View style={styles.bottomPart}>
-        <View
-          style={{
-            width: width * 0.76,
-          }}
-        >
-          <Text style={styles.caption}>{props.userDescription}</Text>
+          <View style={styles.bottomPart}>
+            <View
+              style={{
+                width: width * 0.76,
+              }}
+            >
+              <Text style={styles.caption}>{props.userDescription}</Text>
 
-          <Image
-            source={{ uri: props.postImage }}
-            style={{
-              width: width * 0.76,
-              height: props.imageHeight,
-              borderRadius: 12,
-            }}
-            resizeMode="cover"
-          />
-          <View style={styles.iconRow}>
-            <TouchableOpacity style={styles.likeCommShare} onPress={handleLike}>
-              {isLikedState ? (
-                <HeartFill width={22} height={22} />
-              ) : (
-                <Heart width={22} height={22} />
-              )}
-              {likeCountState !== 0 && (
-                <Text style={styles.numbLikes}>{likeCountState}</Text>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.likeCommShare}>
-              <Comment width={22} height={22} />
-              {comCountState !== 0 && (
-                <Text style={styles.numbLikes}>{props.comments}</Text>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleFavorite}>
-              {isFav ? (
-                <FavFill width={22} height={22} />
-              ) : (
-                <Fav width={22} height={22} />
-              )}
-            </TouchableOpacity>
+              <Image
+                source={{ uri: props.postImage }}
+                style={{
+                  width: width * 0.76,
+                  height: props.imageHeight,
+                  borderRadius: 12,
+                }}
+                resizeMode="cover"
+              />
+              <View style={styles.iconRow}>
+                <TouchableOpacity
+                  style={styles.likeCommShare}
+                  onPress={handleLike}
+                >
+                  {isLikedState ? (
+                    <HeartFill width={24} height={24} />
+                  ) : (
+                    <Heart width={24} height={24} />
+                  )}
+                  {likeCountState !== 0 && (
+                    <Text style={styles.numbLikes}>{likeCountState}</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.likeCommShare}>
+                  <Comment width={24} height={24} />
+                  {comCountState !== 0 && (
+                    <Text style={styles.numbLikes}>{props.comments}</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleFavorite}>
+                  {isFav ? (
+                    <FavFill width={24} height={24} />
+                  ) : (
+                    <Fav width={24} height={24} />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </View>
-      </View>
-    </View>
+      </TouchableOpacity>
+      <PostDetails
+        visible={modalVisible}
+        postProfilePic={userPhotoURL}
+        onClose={closeDetails}
+        {...props}
+      />
+    </>
   );
 };
 
@@ -231,12 +254,13 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   likeCommShare: {
+    width: width * 0.1,
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
   },
   numbLikes: {
-    fontSize: 16,
+    fontSize: 18,
     color: "#666666",
     fontWeight: "500",
   },
