@@ -16,7 +16,7 @@ import GestureRecognizer from "react-native-swipe-gestures";
 
 import React, { useContext, useEffect, useState } from "react";
 import { CommentProps, PostCardProps } from "./PostCard";
-import { Comment, Dot, Heart } from "@/assets/svgs";
+import { Comment, Dot, Heart, HeartFill } from "@/assets/svgs";
 import { UserContext, UserContextType } from "@/src/login/UserContext";
 import { DataBase } from "@/FirebaseConfig";
 import {
@@ -27,40 +27,32 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
+import { timeAgo } from "../services/timeAgo";
 const width = Dimensions.get("window").width;
 const height = Dimensions.get("window").height;
 
 interface PostDetailsProps extends PostCardProps {
   visible: boolean;
   postProfilePic: string | null;
+  liked: boolean;
+  nrLikes: number;
+  nrComms: number;
+  onLike: () => void;
+  onComment: () => void;
   onClose: () => void;
 }
 const PostDetails: React.FC<PostDetailsProps> = ({
   visible,
   postProfilePic,
+  liked,
+  nrLikes,
+  nrComms,
   onClose,
+  onLike,
+  onComment,
   ...props
 }) => {
   const blankProfilePicture = require("../../../assets/images/ProfileBlank.png");
-  function timeAgo(postTimeString: string) {
-    const postTime = parseInt(postTimeString, 10);
-    const now = Date.now();
-    const secondsAgo = Math.floor((now - postTime) / 1000);
-
-    if (secondsAgo < 60) return `${secondsAgo} seconds ago`;
-    const minutesAgo = Math.floor(secondsAgo / 60);
-    if (minutesAgo < 60) return `${minutesAgo} minutes ago`;
-    const hoursAgo = Math.floor(minutesAgo / 60);
-    if (hoursAgo < 24) return `${hoursAgo} hours ago`;
-    const daysAgo = Math.floor(hoursAgo / 24);
-    if (daysAgo < 7) return `${daysAgo} days ago`;
-    const weeksAgo = Math.floor(daysAgo / 7);
-    if (weeksAgo < 4) return `${weeksAgo} weeks ago`;
-    const monthsAgo = Math.floor(daysAgo / 30);
-    if (monthsAgo < 12) return `${monthsAgo} months ago`;
-    const yearsAgo = Math.floor(daysAgo / 365);
-    return `${yearsAgo} years ago`;
-  }
 
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState<CommentProps[]>(props.commented);
@@ -87,7 +79,7 @@ const PostDetails: React.FC<PostDetailsProps> = ({
         commented: updatedComments,
         comments: updatedComments.length,
       });
-
+      onComment();
       console.log("comment added");
       setComments(updatedComments);
       setComCountState(updatedComments.length);
@@ -116,6 +108,7 @@ const PostDetails: React.FC<PostDetailsProps> = ({
         setUserPhotoURL(null);
       }
     };
+    console.log("a", nrLikes);
     fetchUserPhoto();
   }, [props.userTag]);
   return (
@@ -171,16 +164,33 @@ const PostDetails: React.FC<PostDetailsProps> = ({
             />
             <View style={styles.stats}>
               <View style={styles.heartCom}>
-                <Heart width={24} height={24} />
-                <Text style={styles.statItem}>{props.likes}</Text>
+                {!liked ? (
+                  <Heart width={24} height={24} onPress={onLike} />
+                ) : (
+                  <HeartFill width={24} height={24} onPress={onLike} />
+                )}
+                {nrLikes !== 0 && (
+                  <Text style={styles.statItem}>{nrLikes}</Text>
+                )}
               </View>
               <View style={styles.heartCom}>
                 <Comment width={24} height={24} />
-                <Text style={styles.statItem}>{props.comments}</Text>
+                {nrComms !== 0 && (
+                  <Text style={styles.statItem}>{nrComms}</Text>
+                )}
               </View>
             </View>
           </ScrollView>
-          <ScrollView style={{ flex: 1, padding: 4 }}>
+          <ScrollView
+            style={{
+              flex: 1,
+              padding: 4,
+              borderWidth: 2,
+              borderColor: "#A61515",
+              marginHorizontal: 4,
+              borderRadius: 20,
+            }}
+          >
             {comments.map((comment, index) => {
               return (
                 <View
@@ -240,35 +250,33 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 8,
-    gap: 4,
+    gap: 2,
   },
   postText: {
     fontSize: 16,
     fontWeight: "500",
-    color: "#666666",
+    color: "white",
   },
   comButton: {
     width: width * 0.16,
-    height: width * 0.14,
+    height: width * 0.12,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#666666",
+    backgroundColor: "#A61515",
     alignItems: "center",
     justifyContent: "center",
   },
   bottomPart: {
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-    padding: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 8,
     flexDirection: "row",
     justifyContent: "space-between",
   },
   comInput: {
     padding: 8,
-    width: width * 0.74,
-    height: width * 0.14,
-    borderColor: "#666666",
-    borderWidth: 1,
+    width: width * 0.8,
+    height: width * 0.12,
+    borderColor: "#A61515",
+    borderWidth: 2,
     borderRadius: 20,
   },
   profileImage: {
@@ -320,17 +328,18 @@ const styles = StyleSheet.create({
   },
   postImage: {
     width: width,
-    height: height * 0.5,
+    paddingHorizontal: 4,
+    height: height * 0.45,
+    borderRadius: 20,
   },
   stats: {
     flexDirection: "row",
     width: "100%",
     padding: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
   },
   statItem: {
     fontSize: 16,
     fontWeight: "500",
+    color: "#666",
   },
 });

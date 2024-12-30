@@ -11,7 +11,6 @@ import {
 import FeedScreen from "@/src/feed/screens/FeedScreen";
 import PostScreen, { PostScreenRef } from "@/src/post/screens/PostScreen";
 import ProfileScreen from "@/src/profile/screens/ProfileScreen";
-import SearchScreen from "@/src/search/screens/SearchScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useEffect, useRef } from "react";
 import { TouchableOpacity } from "react-native";
@@ -47,18 +46,6 @@ const TabNavigator = () => {
                 <HomeFill width={32} height={32} />
               ) : (
                 <Home width={32} height={32} />
-              ),
-          }}
-        />
-        <Tab.Screen
-          name="searchscreen"
-          component={SearchScreen}
-          options={{
-            tabBarIcon: ({ focused }) =>
-              focused ? (
-                <SearchFill width={32} height={32} />
-              ) : (
-                <Search width={32} height={32} />
               ),
           }}
         />

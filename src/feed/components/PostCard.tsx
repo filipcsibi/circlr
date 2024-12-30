@@ -20,6 +20,7 @@ import {
 } from "firebase/firestore";
 import { UserContext, UserContextType } from "@/src/login/UserContext";
 import PostDetails from "./PostDetails";
+import { timeAgo } from "../services/timeAgo";
 const { width } = Dimensions.get("window");
 export interface CommentProps {
   text: string;
@@ -54,41 +55,7 @@ const PostCard: React.FC<PostCardProps> = (props) => {
 
   const { user } = useContext(UserContext) as UserContextType;
   const blankProfilePicture = require("../../../assets/images/ProfileBlank.png");
-  useEffect(() => {
-    if (user?.uid) {
-      setIsLikedState(props.likedBy.includes(user.uid));
-      setFavState(props.favorite.includes(user.uid));
-    } else {
-      setIsLikedState(false);
-      setFavState(false);
-    }
 
-    setLikeCountState(Number(props.likes));
-  }, [props.likedBy, props.likes, user?.uid]);
-
-  useEffect(() => {
-    const fetchUserPhoto = async () => {
-      try {
-        const userRef = collection(DataBase, "users");
-
-        const q = query(userRef, where("username", "==", props.userTag));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-          const userDoc = querySnapshot.docs[0].data();
-          setUserPhotoURL(userDoc?.profilePicture);
-        } else {
-          console.error("No such document!");
-          setUserPhotoURL(null);
-        }
-      } catch (error) {
-        console.error("Error fetching user photo URL: ", error);
-        setUserPhotoURL(null);
-      }
-    };
-
-    fetchUserPhoto();
-  }, [props.userTag]);
   const handleFavorite = async () => {
     if (!user?.uid) return;
     const newFav = !isFav;
@@ -136,31 +103,50 @@ const PostCard: React.FC<PostCardProps> = (props) => {
       setLikeCountState(likeCountState);
     }
   };
-  function timeAgo(postTimeString: string) {
-    const postTime = parseInt(postTimeString, 10);
-    const now = Date.now();
-    const secondsAgo = Math.floor((now - postTime) / 1000);
 
-    if (secondsAgo < 60) return `${secondsAgo} seconds ago`;
-    const minutesAgo = Math.floor(secondsAgo / 60);
-    if (minutesAgo < 60) return `${minutesAgo} minutes ago`;
-    const hoursAgo = Math.floor(minutesAgo / 60);
-    if (hoursAgo < 24) return `${hoursAgo} hours ago`;
-    const daysAgo = Math.floor(hoursAgo / 24);
-    if (daysAgo < 7) return `${daysAgo} days ago`;
-    const weeksAgo = Math.floor(daysAgo / 7);
-    if (weeksAgo < 4) return `${weeksAgo} weeks ago`;
-    const monthsAgo = Math.floor(daysAgo / 30);
-    if (monthsAgo < 12) return `${monthsAgo} months ago`;
-    const yearsAgo = Math.floor(daysAgo / 365);
-    return `${yearsAgo} years ago`;
-  }
-  const openDetails = () => setModalVisible(true);
+  const openDetails = () => {
+    setModalVisible(true);
+  };
   const closeDetails = () => setModalVisible(false);
 
+  useEffect(() => {
+    if (user?.uid) {
+      setIsLikedState(props.likedBy.includes(user.uid));
+      setFavState(props.favorite.includes(user.uid));
+    } else {
+      setIsLikedState(false);
+      setFavState(false);
+    }
+
+    setLikeCountState(Number(props.likes));
+  }, [props.likedBy, props.likes, user?.uid]);
+
+  useEffect(() => {
+    const fetchUserPhoto = async () => {
+      try {
+        const userRef = collection(DataBase, "users");
+
+        const q = query(userRef, where("username", "==", props.userTag));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          const userDoc = querySnapshot.docs[0].data();
+          setUserPhotoURL(userDoc?.profilePicture);
+        } else {
+          console.error("No such document!");
+          setUserPhotoURL(null);
+        }
+      } catch (error) {
+        console.error("Error fetching user photo URL: ", error);
+        setUserPhotoURL(null);
+      }
+    };
+
+    fetchUserPhoto();
+  }, [props.userTag]);
   return (
     <>
-      <TouchableOpacity onPress={openDetails}>
+      <TouchableOpacity onPress={openDetails} activeOpacity={1}>
         <View style={styles.card}>
           <View style={styles.topPart}>
             <Image
@@ -216,7 +202,7 @@ const PostCard: React.FC<PostCardProps> = (props) => {
                 <TouchableOpacity style={styles.likeCommShare}>
                   <Comment width={24} height={24} />
                   {comCountState !== 0 && (
-                    <Text style={styles.numbLikes}>{props.comments}</Text>
+                    <Text style={styles.numbLikes}>{comCountState}</Text>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleFavorite}>
@@ -232,9 +218,15 @@ const PostCard: React.FC<PostCardProps> = (props) => {
         </View>
       </TouchableOpacity>
       <PostDetails
+        onLike={handleLike}
+        onUnlike={handleLike}
         visible={modalVisible}
         postProfilePic={userPhotoURL}
+        liked={isLikedState}
         onClose={closeDetails}
+        nrComms={comCountState}
+        nrLikes={likeCountState}
+        onComment={() => setComCountState(comCountState + 1)}
         {...props}
       />
     </>
@@ -257,10 +249,10 @@ const styles = StyleSheet.create({
     width: width * 0.1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 2,
   },
   numbLikes: {
-    fontSize: 18,
+    fontSize: 16,
     color: "#666666",
     fontWeight: "500",
   },
