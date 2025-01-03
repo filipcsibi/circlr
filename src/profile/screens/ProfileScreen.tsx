@@ -8,6 +8,8 @@ import {
   SafeAreaView,
   StyleSheet,
   Dimensions,
+  ScrollView,
+  FlatList,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import {
@@ -19,7 +21,16 @@ import {
 import { DataBase, Storage } from "@/FirebaseConfig";
 const { width, height } = Dimensions.get("window");
 import * as Progress from "react-native-progress";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  updateDoc,
+} from "firebase/firestore";
+import { useNavigation } from "@react-navigation/native";
 
 const ProfileScreen = () => {
   const { user, logout } = useContext(UserContext) as UserContextType;
@@ -27,25 +38,9 @@ const ProfileScreen = () => {
   const [uploading, setUploading] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string>("");
   const blankProfilePicture = require("../../../assets/images/ProfileBlank.png");
-
-  useEffect(() => {
-    if (!user) {
-      console.log("useeffecterror");
-      return;
-    }
-    const getProfilePic = async () => {
-      try {
-        const userDocRef = doc(DataBase, "users", user.uid);
-        const userSnapshot = await getDoc(userDocRef);
-        if (userSnapshot.exists())
-          setProfilePicture(userSnapshot.data().profilePicture);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getProfilePic();
-  }, []);
-
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
   const pickImage = async () => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -135,7 +130,63 @@ const ProfileScreen = () => {
       setUploading(false);
     }
   };
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const postsQuery = query(
+        collection(DataBase, "posts"),
+        orderBy("postTime", "desc")
+      );
 
+      const snapshot = await getDocs(postsQuery);
+
+      const fetchedPosts = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setPosts(fetchedPosts);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderPost = ({ item, index }: { item: any; index: number }) => (
+    <TouchableOpacity
+      style={styles.postContainer}
+      onPress={() => {
+        item.onPostPress = !item.onPostPress;
+        console.log(item.onPostPress);
+        // navigation.navigate("feedscreen");
+      }}
+    >
+      <Image
+        source={{ uri: item.postImage }}
+        style={styles.postImage}
+        resizeMode="cover"
+      />
+    </TouchableOpacity>
+  );
+  useEffect(() => {
+    if (!user) {
+      console.log("useeffecterror");
+      return;
+    }
+    const getProfilePic = async () => {
+      try {
+        const userDocRef = doc(DataBase, "users", user.uid);
+        const userSnapshot = await getDoc(userDocRef);
+        if (userSnapshot.exists())
+          setProfilePicture(userSnapshot.data().profilePicture);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getProfilePic();
+    fetchPosts();
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <View style={[styles.topSection, { height: height * 0.35 }]}>
@@ -166,11 +217,32 @@ const ProfileScreen = () => {
           <Text style={styles.editButtonText}>Logout</Text>
         </TouchableOpacity>
       </View>
+      <View style={styles.postsGrid}>
+        <FlatList
+          data={posts}
+          renderItem={renderPost}
+          keyExtractor={(item) => item.id}
+          numColumns={3}
+          scrollEnabled={false}
+        />
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  postContainer: {
+    flex: 1 / 3,
+    aspectRatio: 1,
+    marginTop: 1,
+  },
+  postImage: {
+    width: "100%",
+    height: "100%",
+  },
+  postsGrid: {
+    backgroundColor: "#fff",
+  },
   uploadingContainer: {
     height: width * 0.3,
     marginBottom: 10,

@@ -63,7 +63,6 @@ const PostDetails: React.FC<PostDetailsProps> = ({
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     if (!user?.uid) return;
-
     try {
       const postDocRef = doc(DataBase, "posts", props.id);
       const updatedComments = [
@@ -108,7 +107,6 @@ const PostDetails: React.FC<PostDetailsProps> = ({
         setUserPhotoURL(null);
       }
     };
-    console.log("a", nrLikes);
     fetchUserPhoto();
   }, [props.userTag]);
   return (
@@ -154,6 +152,8 @@ const PostDetails: React.FC<PostDetailsProps> = ({
             scrollEnabled={false}
             contentContainerStyle={{
               alignItems: "center",
+              borderBottomWidth: 1,
+              borderColor: "#ddd",
             }}
             style={{ flexGrow: 0 }}
           >
@@ -185,10 +185,7 @@ const PostDetails: React.FC<PostDetailsProps> = ({
             style={{
               flex: 1,
               padding: 4,
-              borderWidth: 2,
-              borderColor: "#A61515",
               marginHorizontal: 4,
-              borderRadius: 20,
             }}
           >
             {comments.map((comment, index) => {
@@ -255,29 +252,28 @@ const styles = StyleSheet.create({
   postText: {
     fontSize: 16,
     fontWeight: "500",
-    color: "white",
+    color: "#A61515",
   },
   comButton: {
     width: width * 0.16,
     height: width * 0.12,
     borderRadius: 20,
-    backgroundColor: "#A61515",
     alignItems: "center",
     justifyContent: "center",
   },
   bottomPart: {
-    paddingHorizontal: 4,
-    paddingVertical: 8,
+    padding: 2,
+    margin: 4,
     flexDirection: "row",
+    borderColor: "#ddd",
+    borderWidth: 1,
     justifyContent: "space-between",
+    borderRadius: 20,
   },
   comInput: {
     padding: 8,
     width: width * 0.8,
     height: width * 0.12,
-    borderColor: "#A61515",
-    borderWidth: 2,
-    borderRadius: 20,
   },
   profileImage: {
     width: width * 0.1,
@@ -328,9 +324,7 @@ const styles = StyleSheet.create({
   },
   postImage: {
     width: width,
-    paddingHorizontal: 4,
     height: height * 0.45,
-    borderRadius: 20,
   },
   stats: {
     flexDirection: "row",

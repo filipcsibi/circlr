@@ -43,6 +43,7 @@ export interface PostCardProps {
   shares: number;
   shared: string[];
   imageHeight: number;
+  onPostPress: boolean;
 }
 
 const PostCard: React.FC<PostCardProps> = (props) => {
@@ -51,10 +52,13 @@ const PostCard: React.FC<PostCardProps> = (props) => {
   const [isFav, setFavState] = useState(false);
   const [likeCountState, setLikeCountState] = useState(props.likes);
   const [comCountState, setComCountState] = useState(props.comments);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(props.onPostPress);
 
   const { user } = useContext(UserContext) as UserContextType;
   const blankProfilePicture = require("../../../assets/images/ProfileBlank.png");
+  useEffect(() => {
+    console.log("asdawa");
+  }, [props.onPostPress]);
 
   const handleFavorite = async () => {
     if (!user?.uid) return;
@@ -141,7 +145,6 @@ const PostCard: React.FC<PostCardProps> = (props) => {
         setUserPhotoURL(null);
       }
     };
-
     fetchUserPhoto();
   }, [props.userTag]);
   return (
@@ -219,7 +222,6 @@ const PostCard: React.FC<PostCardProps> = (props) => {
       </TouchableOpacity>
       <PostDetails
         onLike={handleLike}
-        onUnlike={handleLike}
         visible={modalVisible}
         postProfilePic={userPhotoURL}
         liked={isLikedState}
