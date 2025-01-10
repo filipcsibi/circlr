@@ -18,7 +18,11 @@ import SearchFill from "./SearchFill.svg";
 import Camera from "./Camera.svg";
 import Gallery from "./Gallery.svg";
 import FavFill from "./FavFill.svg";
+import LogoutButton from "./LogoutButton.svg";
+import DeletePost from "./DeletePost.svg";
 export {
+  DeletePost,
+  LogoutButton,
   FavFill,
   Gallery,
   Camera,

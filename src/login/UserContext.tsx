@@ -13,6 +13,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 export type UserContextType = {
   user: FirebaseUser | null;
   setUser: (user: FirebaseUser | null) => void;
+  saveUserToStorage: (user: FirebaseUser | null) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   register: (
     fullname: string,
@@ -36,6 +37,7 @@ export const UserProvider: React.FC<React.PropsWithChildren<{}>> = ({
 
   useEffect(() => {
     setLoading(true);
+    console.log("loading user");
     const loadUser = async () => {
       try {
         const storedUser = await AsyncStorage.getItem("user");
@@ -49,6 +51,7 @@ export const UserProvider: React.FC<React.PropsWithChildren<{}>> = ({
   }, []);
 
   const saveUserToStorage = async (user: FirebaseUser | null) => {
+    console.log("saving user");
     try {
       if (user) {
         await AsyncStorage.setItem("user", JSON.stringify(user));
@@ -141,7 +144,15 @@ export const UserProvider: React.FC<React.PropsWithChildren<{}>> = ({
 
   return (
     <UserContext.Provider
-      value={{ user, setUser, login, register, logout, loading }}
+      value={{
+        user,
+        setUser,
+        login,
+        register,
+        logout,
+        loading,
+        saveUserToStorage,
+      }}
     >
       {children}
     </UserContext.Provider>

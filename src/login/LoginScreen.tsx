@@ -4,6 +4,7 @@ import { Authentication } from "../../FirebaseConfig";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import React, { useContext, useState } from "react";
 import {
@@ -17,12 +18,14 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   SafeAreaView,
+  Alert,
 } from "react-native";
 const { width, height } = Dimensions.get("window");
 import { NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../navigation/routes/types";
 import GoBackButton from "../navigation/GoBack";
 import { UserContext, UserContextType } from "./UserContext";
+
 const LoginScreen = ({
   navigation,
 }: {
@@ -30,8 +33,33 @@ const LoginScreen = ({
 }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
   const auth = Authentication;
   const { login, loading } = useContext(UserContext) as UserContextType;
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Alert.alert("Email Required", "Please enter your email address first");
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      Alert.alert(
+        "Password Reset Email Sent",
+        "Please check your email for instructions to reset your password"
+      );
+    } catch (error: any) {
+      Alert.alert(
+        "Error",
+        error.message || "Failed to send password reset email"
+      );
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
       <View style={styles.container}>
@@ -59,7 +87,14 @@ const LoginScreen = ({
               onChangeText={(password) => setPassword(password)}
               autoCapitalize="none"
             />
-            <Text style={styles.forgot}>Forgot password?</Text>
+            <TouchableOpacity
+              onPress={handleForgotPassword}
+              disabled={resetLoading}
+            >
+              <Text style={[styles.forgot, resetLoading && { opacity: 0.5 }]}>
+                {resetLoading ? "Sending..." : "Forgot password?"}
+              </Text>
+            </TouchableOpacity>
           </KeyboardAvoidingView>
           {loading ? (
             <View style={styles.activity}>

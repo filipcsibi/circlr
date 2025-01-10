@@ -30,7 +30,8 @@ import {
   query,
   updateDoc,
 } from "firebase/firestore";
-import { useNavigation } from "@react-navigation/native";
+import EditProfileModal from "./EditProfileModule";
+import { LogoutButton } from "@/assets/svgs";
 
 const ProfileScreen = () => {
   const { user, logout } = useContext(UserContext) as UserContextType;
@@ -40,7 +41,7 @@ const ProfileScreen = () => {
   const blankProfilePicture = require("../../../assets/images/ProfileBlank.png");
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigation = useNavigation();
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const pickImage = async () => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -154,14 +155,7 @@ const ProfileScreen = () => {
   };
 
   const renderPost = ({ item, index }: { item: any; index: number }) => (
-    <TouchableOpacity
-      style={styles.postContainer}
-      onPress={() => {
-        item.onPostPress = !item.onPostPress;
-        console.log(item.onPostPress);
-        // navigation.navigate("feedscreen");
-      }}
-    >
+    <TouchableOpacity style={styles.postContainer}>
       <Image
         source={{ uri: item.postImage }}
         style={styles.postImage}
@@ -190,6 +184,12 @@ const ProfileScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={[styles.topSection, { height: height * 0.35 }]}>
+        <LogoutButton
+          width={32}
+          height={32}
+          onPress={() => logout()}
+          style={{ alignSelf: "flex-end", marginRight: 20 }}
+        />
         {!uploading ? (
           <TouchableOpacity onPress={pickImage}>
             <Image
@@ -213,8 +213,13 @@ const ProfileScreen = () => {
         <Text style={styles.userDescription}>
           Developer | Tech Enthusiast | Coffee Lover
         </Text>
-        <TouchableOpacity style={styles.editButton} onPress={() => logout()}>
-          <Text style={styles.editButtonText}>Logout</Text>
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => {
+            setIsEditModalVisible(true);
+          }}
+        >
+          <Text style={styles.editButtonText}>Edit profile</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.postsGrid}>
@@ -226,6 +231,10 @@ const ProfileScreen = () => {
           scrollEnabled={false}
         />
       </View>
+      <EditProfileModal
+        visible={isEditModalVisible}
+        onClose={() => setIsEditModalVisible(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -234,7 +243,6 @@ const styles = StyleSheet.create({
   postContainer: {
     flex: 1 / 3,
     aspectRatio: 1,
-    marginTop: 1,
   },
   postImage: {
     width: "100%",
@@ -242,6 +250,7 @@ const styles = StyleSheet.create({
   },
   postsGrid: {
     backgroundColor: "#fff",
+    marginTop: 1,
   },
   uploadingContainer: {
     height: width * 0.3,
@@ -258,8 +267,8 @@ const styles = StyleSheet.create({
     width: width,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 20,
     borderBottomWidth: 1,
+    paddingBottom: 10,
     borderBottomColor: "#ddd",
   },
   avatar: {

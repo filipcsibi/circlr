@@ -43,23 +43,17 @@ export interface PostCardProps {
   shares: number;
   shared: string[];
   imageHeight: number;
-  onPostPress: boolean;
 }
-
 const PostCard: React.FC<PostCardProps> = (props) => {
   const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null);
   const [isLikedState, setIsLikedState] = useState(false);
   const [isFav, setFavState] = useState(false);
   const [likeCountState, setLikeCountState] = useState(props.likes);
   const [comCountState, setComCountState] = useState(props.comments);
-  const [modalVisible, setModalVisible] = useState(props.onPostPress);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const { user } = useContext(UserContext) as UserContextType;
   const blankProfilePicture = require("../../../assets/images/ProfileBlank.png");
-  useEffect(() => {
-    console.log("asdawa");
-  }, [props.onPostPress]);
-
   const handleFavorite = async () => {
     if (!user?.uid) return;
     const newFav = !isFav;
@@ -126,6 +120,7 @@ const PostCard: React.FC<PostCardProps> = (props) => {
   }, [props.likedBy, props.likes, user?.uid]);
 
   useEffect(() => {
+    console.log(user?.displayName);
     const fetchUserPhoto = async () => {
       try {
         const userRef = collection(DataBase, "users");
@@ -229,6 +224,8 @@ const PostCard: React.FC<PostCardProps> = (props) => {
         nrComms={comCountState}
         nrLikes={likeCountState}
         onComment={() => setComCountState(comCountState + 1)}
+        onFavorite={handleFavorite}
+        faved={isFav}
         {...props}
       />
     </>
